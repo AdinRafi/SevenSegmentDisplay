@@ -13,21 +13,38 @@ def Tampilkan_Angka():
     names = ["W", "X", "Y", "Z"]
 
     input_kosong = [name for name, value in zip(names, inputs) if not value]
+    input_salah = any(bit not in ("0", "1", "") for bit in inputs)
 
-    if input_kosong:
-        messagebox.showerror("Error", f"Input pada {', '.join(input_kosong)} kosong")
-        return
+    error_messages = []
 
-    if not all(bit in ("0", "1") for bit in (input_W, input_X, input_Y, input_Z)):
-        messagebox.showerror("Error", "Input hanya bisa 0 atau 1")
-        return
-    
-    input_W, input_X, input_Y, input_Z = int(input_W), int(input_X), int(input_Y), int(input_Z)
+    if len(input_kosong) == 1:
+        error_messages.append(f"Input pada {(input_kosong[0])} kosong")
+    elif len(input_kosong) == 2:
+       error_messages.append(f"Input pada {input_kosong[0]} dan {input_kosong[1]} kosong")
+    elif len(input_kosong) > 2 and len(input_kosong) < 5:
+        error_messages.append(f"Input pada {', '.join(input_kosong[:-1])}, dan {input_kosong[-1]} kosong")
+ 
+    if input_salah:
+        error_messages.append("Input hanya bisa 0 atau 1")
 
-    angka = input_W * 8 + input_X * 4 + input_Y * 2 + input_Z 
+    input_W = int(input_W) if input_W in ("0", "1") else 0
+    input_X = int(input_X) if input_X in ("0", "1") else 0
+    input_Y = int(input_Y) if input_Y in ("0", "1") else 0
+    input_Z = int(input_Z) if input_Z in ("0", "1") else 0
+
+    angka = input_W * 8 + input_X * 4 + input_Y * 2 + input_Z
 
     if angka < 0 or angka > 9:
-        messagebox.showerror("Error", "Input harus angka 0-9")
+        error_messages.append("Input harus angka 0-9")
+
+    if error_messages and len(input_kosong) == 1:
+        messagebox.showerror("Error", " dan ".join(error_messages))
+        return
+    elif error_messages and (len(input_kosong) == 2 or len(input_kosong) == 3):
+        messagebox.showerror("Error", " serta ".join(error_messages))
+        return
+    elif error_messages:
+        messagebox.showerror("Error", " dan ".join(error_messages))
         return
 
     segmen = {
@@ -55,9 +72,33 @@ def Tampilkan_Angka():
     segment_G.configure(fg_color="red" if segmen_angka[6] else "dark gray")
 
     #UBAH UI TABLE
-    for i, status in enumerate(segmen_angka):
-        table_label[i].configure(text=status)
+    for i, value in enumerate(segmen_angka):
+        table_label[i].configure(text=value)
 
+#MENGGABUNGKAN ENTRY
+def input_ada(event, entry_selanjutnya, entry_sebelumnya):
+    global jumlah_backspace
+    input_masuk = event.widget
+    nilai_input = input_masuk.get().strip() 
+
+    if len(nilai_input) > 1:
+        input_masuk.delete(1, ctk.END)
+
+    if nilai_input:
+        if entry_selanjutnya is not None:
+            entry_selanjutnya.focus()
+            jumlah_backspace = 0
+
+    elif jumlah_backspace > 0:
+        if entry_sebelumnya is not None:
+            entry_sebelumnya.focus()
+            jumlah_backspace = 0
+
+    elif nilai_input == "" and event.keysym == "BackSpace":
+        jumlah_backspace += 1
+    
+    else:
+        jumlah_backspace = 0
 
 #UI INPUT
 ctk.set_appearance_mode("light")
@@ -97,8 +138,16 @@ entry_Z.grid(row=0, column=7, padx =(0,5), pady=10)
 button = ctk.CTkButton(master=input_frame,text="Tampilkan",width=10, height=40, fg_color="red", text_color="black", hover_color="dark red", command=Tampilkan_Angka)
 button.grid(row=0, column=8, padx=(0,10), pady=10)
 
-#UI DISPLAY
+#UI INPUT BIND
+entry_W.bind("<KeyRelease>", lambda event: input_ada(event, entry_X, None))
+entry_X.bind("<KeyRelease>", lambda event: input_ada(event, entry_Y, entry_W))
+entry_Y.bind("<KeyRelease>", lambda event: input_ada(event, entry_Z, entry_X))
+entry_Z.bind("<KeyRelease>", lambda event: input_ada(event, None, entry_Y))
 
+#BUTTON INPUT BIND
+app.bind("<Return>", lambda event: Tampilkan_Angka())
+
+#UI DISPLAY
 display_frame = ctk.CTkFrame(master=app, width=300, height=400, corner_radius=10, fg_color="white")
 display_frame.pack(padx=10, pady=10)
 
@@ -124,7 +173,6 @@ segment_G = ctk.CTkLabel(master=display_frame, width=60, height=15, fg_color="da
 segment_G.grid(row=2, column=1)
 
 #UI TABLE
-
 table_frame = ctk.CTkFrame(master=app, width=300, height=400, corner_radius=10, fg_color="white")
 table_frame.pack(padx=10, pady=10)
 
@@ -151,11 +199,11 @@ label_G.grid(row=0, column=6, padx=(10,10), pady=10)
 
 table_label = []
 for i in range(7):
-    label = ctk.CTkLabel(master=table_frame, text="0", width=20, height=10, text_color="black")
+    label = ctk.CTkLabel(master=table_frame, text=0, width=20, height=10, text_color="black")
     label.grid(row=1, column=i, padx=(10,0), pady=(0,10))
     if i == 6:
         label.grid(row=1, column=i, padx=(10,10), pady=(0,10))
     table_label.append(label)
 
-#RUN THE APP
+#JALANKAN APP
 app.mainloop()
