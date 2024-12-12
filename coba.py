@@ -43,7 +43,6 @@ entry_Z.grid(row=0, column=7, padx =(0,5), pady=10)
 button = ctk.CTkButton(master=input_frame,text="Tampilkan",width=10, height=40, fg_color="red", text_color="black", hover_color="dark red", command=tampilkan_angka)
 button.grid(row=0, column=8, padx=(0,10), pady=10)
 
-
 #UI INPUT BIND
 entry_W.bind("<KeyRelease>", lambda event: input_ada(event, entry_X, None))
 entry_X.bind("<KeyRelease>", lambda event: input_ada(event, entry_Y, entry_W))
@@ -57,7 +56,9 @@ def input_ada(event, entry_selanjutnya, entry_sebelumnya):
     nilai_input = input_masuk.get().strip() 
 
     if len(nilai_input) > 1:
-        input_masuk.delete(1, ctk.END)
+        input_kedua = nilai_input[1]
+        input_masuk.delete(0, ctk.END)
+        input_masuk.insert(0, input_kedua)
 
     if nilai_input:
         if entry_selanjutnya is not None:
@@ -74,8 +75,6 @@ def input_ada(event, entry_selanjutnya, entry_sebelumnya):
     
     else:
         jumlah_backspace = 0
-
-    
 
 #UI DISPLAY
 display_frame = ctk.CTkFrame(master=app, width=300, height=400, corner_radius=10, fg_color="white")
@@ -175,13 +174,13 @@ def tangani_input():
 
     if error_messages and len(input_kosong) == 1:
         messagebox.showerror("Error", " dan ".join(error_messages))
-        return
+        angka = 10
     elif error_messages and (len(input_kosong) == 2 or len(input_kosong) == 3):
         messagebox.showerror("Error", " serta ".join(error_messages))
-        return
+        angka = 10
     elif error_messages:
         messagebox.showerror("Error", " dan ".join(error_messages))
-        return
+        angka = 10
 
     segmen = {
             0: [1, 1, 1, 1, 1, 1, 0],
@@ -194,6 +193,7 @@ def tangani_input():
             7: [1, 1, 1, 0, 0, 0, 0],
             8: [1, 1, 1, 1, 1, 1, 1],
             9: [1, 1, 1, 1, 0, 1, 1],
+            10:[0, 0, 0, 0, 0, 0, 0]
         }
     
     segmen_angka = segmen[angka]
